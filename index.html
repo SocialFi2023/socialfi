@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User List</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>User List</h1>
+    <table id="userTable">
+        <thead>
+            <tr>
+                <th onclick="sortTable(0)">ID</th>
+                <th onclick="sortTable(1)">Address</th>
+                <th onclick="sortTable(2)">Twitter Username</th>
+                <th onclick="sortTable(3)">Twitter Name</th>
+                <th onclick="sortTable(4)">Display Price</th>
+                <th onclick="sortTable(5)">Change (24H)</th>
+                <th onclick="sortTable(6)">Holder Count</th>
+                <th onclick="sortTable(7)">Share Supply</th>
+            </tr>
+        </thead>
+        <tbody id="userTableBody">
+            <!-- User data will be dynamically added here -->
+        </tbody>
+    </table>
+
+    <script>
+        const apiUrl = 'https://prod-api.kosetto.com/lists/top-by-price';
+        let sortDirection = 1; // 1 for ascending, -1 for descending
+
+        async function getUsers() {
+            try {
+                const response = await fetch(apiUrl);
+                const userData = await response.json();
+
+                if (response.ok) {
+                    displayUsers(userData.users);
+                } else {
+                    console.error('Error fetching user data');
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        function displayUsers(users) {
+            const tableBody = document.getElementById('userTableBody');
+            tableBody.innerHTML = '';
+
+            users.forEach(user => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${user.id}</td>
+                    <td>${user.address}</td>
+                    <td>${user.twitterUsername}</td>
+                    <td>${user.twitterName}</td>
+                    <td>${user.displayPrice}</td>
+                    <td>${user.change24H}</td>
+                    <td>${user.holderCount}</td>
+                    <td>${user.shareSupply}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function sortTable(columnIndex) {
+            const table = document.getElementById('userTable');
+            const rows = Array.from(table.rows);
+            const header = rows[0];
+            const isNumericColumn = [0, 4, 5, 6, 7].includes(columnIndex); // Numeric columns
+
+            // Toggle sort direction
+            sortDirection = -sortDirection;
+
+            rows.shift(); // Remove the header row for sorting
+
+            rows.sort((a, b) => {
+                const x = a.cells[columnIndex].textContent.trim();
+                const y = b.cells[columnIndex].textContent.trim();
+
+                if (isNumericColumn) {
+                    // Sort numerically for numeric columns
+                    return sortDirection * (parseFloat(x) - parseFloat(y));
+                } else {
+                    // Sort lexicographically for non-numeric columns
+                    return sortDirection * x.localeCompare(y);
+                }
+            });
+
+            table.innerHTML = ''; // Clear the table
+
+            // Add the header row back
+            table.appendChild(header);
+
+            // Add sorted rows to the table
+            rows.forEach(row => table.appendChild(row));
+        }
+
+        getUsers();
+    </script>
+</body>
+</html>
