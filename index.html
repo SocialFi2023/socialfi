@@ -20,6 +20,7 @@
 </head>
 <body>
     <h1>User List</h1>
+    <button id="refreshButton" onclick="refreshData()">⟳</button>
     <table id="userTable">
         <thead>
             <tr>
@@ -86,6 +87,15 @@
             // Toggle sort direction
             sortDirection = -sortDirection;
 
+            // Remove the previous sort indicator arrows
+            header.querySelectorAll('th').forEach(th => {
+                th.textContent = th.textContent.replace(/ [↑↓]/g, '');
+            });
+
+            // Add the sort indicator arrows to the clicked header cell
+            const headerCell = header.cells[columnIndex];
+            headerCell.textContent += sortDirection === 1 ? ' ↑' : ' ↓';
+
             rows.shift(); // Remove the header row for sorting
 
             rows.sort((a, b) => {
@@ -108,6 +118,19 @@
 
             // Add sorted rows to the table
             rows.forEach(row => table.appendChild(row));
+        }
+
+        async function refreshData() {
+            // Clear the table
+            const table = document.getElementById('userTable');
+            table.innerHTML = '';
+
+            // Display a loading message
+            const tableBody = document.getElementById('userTableBody');
+            tableBody.innerHTML = '<tr><td colspan="8">Loading data...</td></tr>';
+
+            // Fetch and display user data
+            getUsers();
         }
 
         getUsers();
